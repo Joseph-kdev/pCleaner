@@ -9,15 +9,19 @@ export const unstable_settings = {
   anchor: '(tabs)',
 };
 
+import { TrashProvider } from '@/context/TrashContext';
+
 export default function RootLayout() {
   const colorScheme = useColorScheme();
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-      </Stack>
+      <TrashProvider>
+        <Stack>
+          <Stack.Screen name="index" options={{ headerShown: false }} />
+          <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Trash Bin' }} />
+        </Stack>
+      </TrashProvider>
       <StatusBar style="auto" />
     </ThemeProvider>
   );
