@@ -78,13 +78,11 @@ export const MediaCard: React.FC<MediaCardProps> = ({ asset, isActive }) => {
 
 const styles = StyleSheet.create({
   card: {
-    flex: 1,
-    borderRadius: 20,
+    height: height * 0.85,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: '#E8E8E8',
-    justifyContent: 'center',
-    backgroundColor: 'black',
-    height: height * 0.75,
+    backgroundColor: 'white',
     overflow: 'hidden',
     shadowColor: "#000",
     shadowOffset: {
@@ -94,6 +92,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+    marginHorizontal: 4,
+    marginVertical: 2
   },
   mediaContainer: {
       flex: 1,

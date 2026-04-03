@@ -12,10 +12,6 @@ export const useGallery = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [deletedCount, setDeletedCount] = useState(0);
 
-  const requestPermission = async () => {
-    return await MediaLibrary.requestPermissionsAsync(false, ['photo', 'video']);
-  };
-
   const init = useCallback(async () => {
     try {
       let response = await MediaLibrary.getPermissionsAsync(false, ['photo', 'video']);
@@ -83,7 +79,6 @@ export const useGallery = () => {
 
   return {
     permissionResponse,
-    requestPermission,
     assets,
     loadMore,
     isLoading,
