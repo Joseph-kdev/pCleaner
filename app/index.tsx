@@ -2,12 +2,10 @@ import { MediaCard } from "@/components/MediaCard";
 import { useTrash } from "@/context/TrashContext";
 import { useGallery } from "@/hooks/useGallery";
 import { Ionicons } from "@expo/vector-icons";
-import { Link, useRouter } from "expo-router";
-import React, { useEffect, useMemo, useState } from "react";
+import { Link } from "expo-router";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Platform,
-  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -15,10 +13,12 @@ import {
 } from "react-native";
 import { CardStack } from "@/components/CardStack";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { AlbumPicker } from "@/components/AlbumPicker";
 
 export default function HomeScreen() {
-  const { assets, loadMore, isLoading, init } = useGallery();
+  const { assets, loadMore, isLoading, init, albums, selectedAlbum, selectAlbum } = useGallery();
   const { addToTrash, trashItems } = useTrash();
+  const [showAlbumDialog, setShowAlbumDialog] = useState(false)
 
   // We need to keep track of the current card index to know when to load more
   const [cardIndex, setCardIndex] = useState(0);
@@ -49,15 +49,22 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>JCleaner</Text>
-        <Link href="/modal" asChild>
-          <TouchableOpacity style={styles.trashButton}>
-            <Ionicons name="trash-outline" size={24} color="#007AFF" />
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>{trashItems.length}</Text>
-            </View>
+        <Text style={styles.title}>
+          {selectedAlbum ? selectedAlbum.title : "JCleaner"}
+        </Text>
+        <View style={styles.iconHold}>
+          <TouchableOpacity onPress={() => setShowAlbumDialog(true)}>
+            <Ionicons name="grid-outline" size={24} color="#007AFF" />
           </TouchableOpacity>
-        </Link>
+          <Link href="/modal" asChild>
+            <TouchableOpacity style={styles.trashButton}>
+              <Ionicons name="trash-outline" size={24} color="#007AFF" />
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{trashItems.length}</Text>
+              </View>
+            </TouchableOpacity>
+          </Link>
+        </View>
       </View>
 
       <View style={styles.swiperContainer}>
@@ -91,6 +98,17 @@ export default function HomeScreen() {
           </View>
         )}
       </View>
+
+      <AlbumPicker 
+        visible={showAlbumDialog}
+        onClose={() => setShowAlbumDialog(false)}
+        albums={albums}
+        selectedAlbum={selectedAlbum}
+        onSelectAlbum={(album) => {
+          selectAlbum(album);
+          setCardIndex(0);
+        }}
+      />
     </SafeAreaView>
   );
 }
@@ -113,6 +131,12 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
     color: "#333",
+  },
+  iconHold: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4
   },
   trashButton: {
     padding: 8,

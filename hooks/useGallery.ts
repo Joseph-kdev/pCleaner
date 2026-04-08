@@ -12,6 +12,18 @@ export const useGallery = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [deletedCount, setDeletedCount] = useState(0);
 
+  const [albums, setAlbums] = useState<MediaLibrary.Album[]>([]);
+  const [selectedAlbum, setSelectedAlbum] = useState<MediaLibrary.Album | undefined>(undefined);
+
+  const loadAlbums = async () => {
+    try {
+      const fetchedAlbums = await MediaLibrary.getAlbumsAsync();
+      setAlbums(fetchedAlbums);
+    } catch (e) {
+      console.error("Failed to load albums", e);
+    }
+  };
+
   const init = useCallback(async () => {
     try {
       let response = await MediaLibrary.getPermissionsAsync(false, ['photo', 'video']);
@@ -27,6 +39,7 @@ export const useGallery = () => {
         return;
       }
       
+      loadAlbums();
       loadAssets(undefined);
     } catch (e) {
       console.error("Permission init error", e);
@@ -34,13 +47,15 @@ export const useGallery = () => {
     }
   }, []);
 
-  const loadAssets = async (cursor?: string) => {
+  const loadAssets = async (cursor?: string, albumParam?: MediaLibrary.Album | null) => {
     if (isLoading) return;
     setIsLoading(true);
+    const targetAlbum = albumParam !== undefined ? (albumParam || undefined) : selectedAlbum;
     try {
       const { assets: newAssets, hasNextPage: hasNext, endCursor: newCursor } = await MediaLibrary.getAssetsAsync({
         first: 50,
         after: cursor,
+        album: targetAlbum,
         mediaType: [MediaLibrary.MediaType.photo, MediaLibrary.MediaType.video],
         sortBy: MediaLibrary.SortBy.creationTime,
       });
@@ -60,6 +75,14 @@ export const useGallery = () => {
     if (hasNextPage && !isLoading) {
       loadAssets(endCursor);
     }
+  };
+
+  const selectAlbum = (album?: MediaLibrary.Album) => {
+    setSelectedAlbum(album);
+    setAssets([]);
+    setEndCursor(undefined);
+    setHasNextPage(false);
+    loadAssets(undefined, album || null);
   };
 
   const deleteAssets = async (assetsToDelete: GalleryAsset[]) => {
@@ -83,6 +106,9 @@ export const useGallery = () => {
     loadMore,
     isLoading,
     deleteAssets,
-    init
+    init,
+    albums,
+    selectedAlbum,
+    selectAlbum,
   };
 };
