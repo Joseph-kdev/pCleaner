@@ -1,9 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
-import { ResizeMode, Video } from 'expo-av';
-import { LinearGradient } from 'expo-linear-gradient';
-import React, { useEffect, useRef, useState } from 'react';
+import { useVideoPlayer, VideoView } from 'expo-video';
+import { BlurView } from 'expo-blur';
+import React, { useEffect, useState } from 'react';
 import { Dimensions, Image, StyleSheet, Text, View } from 'react-native';
 import { GalleryAsset } from '../hooks/useGallery';
+import { useAppTheme } from '@/context/ThemeContext';
+import { useIsFocused } from '@react-navigation/native';
 
 const { width, height } = Dimensions.get('window');
 
@@ -13,47 +15,57 @@ interface MediaCardProps {
 }
 
 export const MediaCard: React.FC<MediaCardProps> = ({ asset, isActive }) => {
-  const video = useRef<Video>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const { theme, colors } = useAppTheme();
+  const isFocused = useIsFocused();
+
+  const player = useVideoPlayer(asset.uri, player => {
+    player.loop = true;
+  });
 
   useEffect(() => {
-    if (isActive && asset.mediaType === 'video') {
-      video.current?.playAsync();
+    if (isActive && isFocused && asset.mediaType === 'video') {
+      player.play();
       setIsPlaying(true);
     } else {
-      video.current?.pauseAsync();
+      player.pause();
       setIsPlaying(false);
     }
-  }, [isActive, asset.mediaType]);
+  }, [isActive, isFocused, asset.mediaType, player]);
 
   const togglePlay = () => {
     if (asset.mediaType !== 'video') return;
      if (isPlaying) {
-        video.current?.pauseAsync();
+        player.pause();
         setIsPlaying(false);
      } else {
-        video.current?.playAsync();
+        player.play();
         setIsPlaying(true);
      }
   };
 
   return (
-    <View style={styles.card}>
+    <View style={[
+      styles.card, 
+      { backgroundColor: colors.surface },
+      theme === 'dark' && { shadowColor: '#000', shadowOpacity: 0.3 }
+    ]}>
       {asset.mediaType === 'video' ? (
         <View style={styles.mediaContainer}>
-             <Video
-                ref={video}
-                style={styles.media}
-                source={{ uri: asset.uri }}
-                useNativeControls
-                resizeMode={ResizeMode.CONTAIN}
-                isLooping
-                onPlaybackStatusUpdate={status => {
-                     if (status.isLoaded) {
-                         setIsPlaying(status.isPlaying);
-                     }
-                }}
-            />
+            {isActive && isFocused ? (
+                 <VideoView
+                    style={styles.media}
+                    player={player}
+                    contentFit="contain"
+                    fullscreenOptions={{ enable: true }}
+                />
+            ) : (
+                 <Image
+                    source={{ uri: asset.uri }}
+                    style={styles.media}
+                    resizeMode="contain"
+                />
+            )}
         </View>
       ) : (
         <Image
@@ -63,15 +75,16 @@ export const MediaCard: React.FC<MediaCardProps> = ({ asset, isActive }) => {
         />
       )}
       
-      <LinearGradient
-        colors={['transparent', 'rgba(0,0,0,0.8)']}
+      <BlurView
+        intensity={60}
+        tint="dark"
         style={styles.infoOverlay}
       >
          <Text style={styles.dateText}>{new Date(asset.creationTime).toLocaleDateString()}</Text>
          {asset.mediaType === 'video' && (
-             <Ionicons name="videocam" size={20} color="white" style={{marginLeft: 8}} />
+             <Ionicons name="videocam" size={20} color="#F4F4F5" style={{marginLeft: 8}} />
          )}
-      </LinearGradient>
+      </BlurView>
     </View>
   );
 };
@@ -79,21 +92,19 @@ export const MediaCard: React.FC<MediaCardProps> = ({ asset, isActive }) => {
 const styles = StyleSheet.create({
   card: {
     height: height * 0.85,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#E8E8E8',
-    backgroundColor: 'white',
+    borderRadius: 24,
+    backgroundColor: '#FAFAFA',
     overflow: 'hidden',
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 8,
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-    marginHorizontal: 4,
-    marginVertical: 2
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
+    elevation: 8,
+    marginHorizontal: 8,
+    marginVertical: 4
   },
   mediaContainer: {
       flex: 1,
@@ -109,13 +120,15 @@ const styles = StyleSheet.create({
       bottom: 0,
       left: 0,
       right: 0,
-      padding: 20,
-      paddingTop: 40,
+      padding: 24,
+      paddingTop: 48,
       flexDirection: 'row',
-      alignItems: 'center'
+      alignItems: 'center',
   },
   dateText: {
-      color: 'white',
-      fontWeight: 'bold'
+      color: '#FAFAFA',
+      fontWeight: '700',
+      fontSize: 16,
+      letterSpacing: 0.5,
   }
 });

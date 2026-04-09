@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "pCleaner",
+    "name": "SwipeAway",
     "slug": "pCleaner",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -65,7 +65,9 @@
             "video"
           ]
         }
-      ]
+      ],
+      "expo-video",
+      "expo-audio"
     ],
     "experiments": {
       "typedRoutes": true,

@@ -1,6 +1,7 @@
 import { MediaCard } from "@/components/MediaCard";
 import { useTrash } from "@/context/TrashContext";
 import { useGallery } from "@/hooks/useGallery";
+import { useAppTheme } from "@/context/ThemeContext";
 import { Ionicons } from "@expo/vector-icons";
 import { Link } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -18,6 +19,7 @@ import { AlbumPicker } from "@/components/AlbumPicker";
 export default function HomeScreen() {
   const { assets, loadMore, isLoading, init, albums, selectedAlbum, selectAlbum } = useGallery();
   const { addToTrash, trashItems } = useTrash();
+  const { theme, toggleTheme, colors } = useAppTheme();
   const [showAlbumDialog, setShowAlbumDialog] = useState(false)
 
   // We need to keep track of the current card index to know when to load more
@@ -47,19 +49,22 @@ export default function HomeScreen() {
   const hasMore = cardIndex < assets.length
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <Text style={styles.title}>
-          {selectedAlbum ? selectedAlbum.title : "JCleaner"}
+        <Text style={[styles.title, { color: colors.text }]}>
+          {selectedAlbum ? selectedAlbum.title : "Recents"}
         </Text>
         <View style={styles.iconHold}>
+          <TouchableOpacity onPress={toggleTheme}>
+            <Ionicons name={theme === 'dark' ? 'sunny' : 'moon'} size={24} color={colors.text} />
+          </TouchableOpacity>
           <TouchableOpacity onPress={() => setShowAlbumDialog(true)}>
-            <Ionicons name="grid-outline" size={24} color="#007AFF" />
+            <Ionicons name="grid-outline" size={24} color={colors.text} />
           </TouchableOpacity>
           <Link href="/modal" asChild>
             <TouchableOpacity style={styles.trashButton}>
-              <Ionicons name="trash-outline" size={24} color="#007AFF" />
-              <View style={styles.badge}>
+              <Ionicons name="trash-outline" size={24} color={colors.text} />
+              <View style={[styles.badge, { backgroundColor: colors.brand }]}>
                 <Text style={styles.badgeText}>{trashItems.length}</Text>
               </View>
             </TouchableOpacity>
@@ -84,16 +89,16 @@ export default function HomeScreen() {
               loadMore();
             }}
             renderCard={(card, index) => {
-              if (!card) return <View style={styles.emptyCard} />;
+              if (!card) return <View style={[styles.emptyCard, { backgroundColor: colors.surface, borderColor: colors.border }]} />;
               const isTop = index === cardIndex;
-              return <MediaCard asset={card} isActive={isTop} />;
+              return <MediaCard asset={card} isActive={isTop && !showAlbumDialog} />;
             }}
           />
         ) : (
           <View style={styles.emptyContainer}>
-            <Text>No photos found or loading...</Text>
+            <Text style={{ color: colors.textSecondary }}>No photos found or loading...</Text>
             <TouchableOpacity onPress={init} style={{ marginTop: 20 }}>
-              <Text style={{ color: "blue" }}>Retry</Text>
+              <Text style={{ color: colors.brand, fontWeight: '700' }}>Retry</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -116,27 +121,28 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F5F5F5",
-    paddingTop: 4,
+    backgroundColor: "#FAFAFA",
+    paddingTop: 12,
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 8,
-    paddingVertical: 2,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     zIndex: 100, // Ensure header is above swiper
   },
   title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#333",
+    fontSize: 28,
+    fontWeight: "800",
+    color: "#09090B",
+    letterSpacing: -0.5,
   },
   iconHold: {
     display: "flex",
     flexDirection: "row",
     alignItems: "center",
-    gap: 4
+    gap: 16
   },
   trashButton: {
     padding: 8,
@@ -144,19 +150,25 @@ const styles = StyleSheet.create({
   },
   badge: {
     position: "absolute",
-    top: 5,
-    right: 5,
-    backgroundColor: "red",
-    borderRadius: 10,
-    width: 20,
+    top: 0,
+    right: 0,
+    backgroundColor: "#27272A",
+    borderRadius: 12,
+    minWidth: 20,
     height: 20,
+    paddingHorizontal: 4,
     justifyContent: "center",
     alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+    elevation: 2,
   },
   badgeText: {
-    color: "white",
-    fontSize: 10,
-    fontWeight: "bold",
+    color: "#FAFAFA",
+    fontSize: 11,
+    fontWeight: "700",
   },
   swiperContainer: {
     flex: 1,
